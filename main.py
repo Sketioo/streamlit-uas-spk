@@ -47,42 +47,46 @@ def normalize_values(values, labels):
     return np.array(normalized_all)
 
 
-def calculate_saw(values, weights):
+def calculate_topsis(values, weights):
     if not values.shape[1] == weights.shape[0]:
         st.write('Jumlah kriteria dan bobot tidak sama')
         return None
 
-    alt_crit_value = []
+    # Normalisasi matriks keputusan
+    norm_values = normalize_values(values, criteria_labels)
 
-    for i in range(values.shape[0]):
-        val = np.sum(values[i] * weights.T)
-        alt_crit_value.append(val)
+    # Hitung solusi ideal positif dan negatif
+    ideal_positive = np.max(norm_values, axis=0)
+    ideal_negative = np.min(norm_values, axis=0)
 
-    return alt_crit_value
+    # Hitung jarak alternatif terhadap solusi ideal positif dan negatif (Euclidean distance)
+    distance_positive = np.sqrt(np.sum((norm_values - ideal_positive) ** 2, axis=1))
+    distance_negative = np.sqrt(np.sum((norm_values - ideal_negative) ** 2, axis=1))
 
+    # Hitung nilai kedekatan (closeness) untuk setiap alternatif
+    closeness = distance_negative / (distance_positive + distance_negative)
 
-def ranking(vector):
-    ranks = len(vector) - vector.argsort().argsort()
+    # Urutkan indeks alternatif berdasarkan nilai kedekatan (closeness)
+    ranks = len(closeness) - closeness.argsort().argsort()
+
     return ranks
-
 
 def run():
     st.set_page_config(
-        page_title="Implementasi SAW",
+        page_title="Implementasi TOPSIS",
         page_icon="💻",
     )
 
-    st.write("# Implementasi Metode SAW untuk Memilih Framework")
+    st.write("# Implementasi Metode TOPSIS untuk Memilih Framework")
     st.write("Dikembangkan oleh Martio Husein Samsu untuk keperluan tugas UAS")
 
     st.markdown(
         """
-          Metode SAW (Simple Additive Weighting) adalah salah satu metode
-          pemilihan alternatif dalam pengambilan keputusan multi-kriteria.
-          Metode ini mengubah masalah pengambilan keputusan menjadi proses
-          penjumlahan hasil dari kriteria yang telah dinormalisasi dan dibobotkan.
-          Kriteria dalam metode SAW memiliki bobot relatif yang mewakili tingkat
-          kepentingan relatif dari setiap kriteria dalam pengambilan keputusan.
+        Metode TOPSIS (Technique for Order Preference by Similarity to Ideal Solution) 
+        adalah metode pengambilan keputusan multi-kriteria yang menggunakan perbandingan 
+        terhadap solusi ideal positif dan negatif untuk menentukan peringkat alternatif. 
+        Metode ini mempertimbangkan kedekatan relatif setiap alternatif terhadap kedua solusi ideal 
+        tersebut dan dapat digunakan untuk memilih alternatif terbaik dari beberapa kriteria.
         """
     )
 
@@ -101,8 +105,6 @@ def run():
         - Kinerja (C5), semakin baik kinerja dari framework semakin baik.
         """
     )
-
-    st.divider()
 
     selected_framework = st.selectbox("Pilih Framework", framework_options)
 
@@ -126,7 +128,6 @@ def run():
         if st.button("Proses"):
             process_data()
 
-
 def save_data(c1, c2, c3, c4, c5, selected_framework):
     if 'nilai_kriteria' not in st.session_state:
         st.session_state.nilai_kriteria = np.array([[c1, c2, c3, c4, c5]])
@@ -145,9 +146,7 @@ def process_data():
     A = st.session_state.nilai_kriteria
     frameworks = st.session_state.frameworks
 
-    norm_a = normalize_values(A, criteria_labels)
-    saw = calculate_saw(norm_a, weights)
-    rank = ranking(np.asarray(saw))
+    rank = calculate_topsis(A, weights)
 
     st.write("Nilai alternatif:")
     df_values = pd.DataFrame(A, columns=['C1', 'C2', 'C3', 'C4', 'C5'])
@@ -156,17 +155,12 @@ def process_data():
     st.dataframe(df_values)
 
     st.write("Normalisasi nilai alternatif:")
+    norm_a = normalize_values(A, criteria_labels)
     df_norm_values = pd.DataFrame(norm_a, columns=['C1', 'C2', 'C3', 'C4', 'C5'])
     df_norm_values.index += 1 
     st.dataframe(df_norm_values)
 
-    st.write("Perhitungan nilai SAW:")
-    df_saw = pd.DataFrame({'Alternatif': range(1, len(saw) + 1), 'Nilai SAW': saw})
-    df_saw['Framework'] = frameworks  
-    df_saw.index += 1 
-    st.table(df_saw)
-
-    st.write("Perankingan:")
+    st.write("Perankingan TOPSIS:")
     df_rank = pd.DataFrame({'Alternatif': range(1, len(rank) + 1), 'Peringkat': rank})
     df_rank['Framework'] = frameworks  
 
@@ -177,4 +171,3 @@ def process_data():
 
 if __name__ == "__main__":
     run()
-
