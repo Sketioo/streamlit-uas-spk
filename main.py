@@ -44,63 +44,33 @@ def normalize_values(values, labels):
     return np.array(normalized_all)
 
 
-
-
-# def normalize_values(values, labels):
-#     if not values.shape[1] == len(labels):
-#         st.write('Jumlah kriteria dan label tidak sama')
-#         return None
-
-#     normalized_all = []
-
-#     for i in range(values.shape[0]):
-#         normalized_value = []
-#         max_val = np.max(values[i])
-#         min_val = np.min(values[i])
-
-#         # Menangani kasus di mana nilai maksimum dan minimum sama
-#         if max_val == min_val:
-#             for j in range(values.shape[1]):
-#                 normalized_value.append(1.0)  # Atau sesuaikan dengan nilai default yang sesuai
-#         else:
-#             # Modifikasi nilai minimum untuk menghindari nilai normalisasi menjadi 0
-#             min_val = min_val - 0.01
-
-#             for j in range(values.shape[1]):
-#                 if labels[j] == 'benefit':
-#                     norm_c = (values[i][j] - min_val) / (max_val - min_val)
-#                 elif labels[j] == 'cost':
-#                     norm_c = (min_val - values[i][j]) / (min_val - max_val)
-#                 normalized_value.append(norm_c)
-
-#         normalized_all.append(normalized_value)
-
-#     return np.array(normalized_all)
-
-
 def calculate_topsis(values, weights):
     if not values.shape[1] == weights.shape[0]:
         st.write('Jumlah kriteria dan bobot tidak sama')
-        return None
+        return None, None
 
     # Normalisasi matriks keputusan
     norm_values = normalize_values(values, criteria_labels)
 
-    # Hitung solusi ideal positif dan negatif
-    ideal_positive = np.max(norm_values, axis=0)
-    ideal_negative = np.min(norm_values, axis=0)
+    # Menerapkan bobot ke nilai yang telah dinormalisasi
+    weighted_norm_values = norm_values * weights
+
+    # Hitung solusi ideal positif dan negatif dengan bobot yang telah diterapkan
+    weighted_ideal_positive = np.max(weighted_norm_values, axis=0)
+    weighted_ideal_negative = np.min(weighted_norm_values, axis=0)
 
     # Hitung jarak alternatif terhadap solusi ideal positif dan negatif (Euclidean distance)
-    distance_positive = np.sqrt(np.sum((norm_values - ideal_positive) ** 2, axis=1))
-    distance_negative = np.sqrt(np.sum((norm_values - ideal_negative) ** 2, axis=1))
+    distance_positive = np.sqrt(np.sum((weighted_norm_values - weighted_ideal_positive) ** 2, axis=1))
+    distance_negative = np.sqrt(np.sum((weighted_norm_values - weighted_ideal_negative) ** 2, axis=1))
 
-    # Hitung nilai kedekatan (closeness) untuk setiap alternatif
-    closeness = distance_negative / (distance_positive + distance_negative)
+    # Hitung nilai total score untuk setiap alternatif
+    total_scores = distance_negative / (distance_positive + distance_negative)
 
     # Urutkan indeks alternatif berdasarkan nilai kedekatan (closeness)
-    ranks = len(closeness) - closeness.argsort().argsort()
+    ranks = len(total_scores) - total_scores.argsort().argsort()
 
-    return ranks
+    return ranks, total_scores
+
 
 def run():
     st.set_page_config(
@@ -177,8 +147,8 @@ def process_data():
     A = st.session_state.nilai_kriteria
     frameworks = st.session_state.frameworks
 
-    rank = calculate_topsis(A, weights)
-
+    ranks, total_scores = calculate_topsis(A, weights)
+    
     st.write("Nilai alternatif:")
     df_values = pd.DataFrame(A, columns=['C1', 'C2', 'C3', 'C4', 'C5'])
     df_values['Framework'] = frameworks  
@@ -192,9 +162,9 @@ def process_data():
     st.dataframe(df_norm_values)
 
     st.write("Perankingan TOPSIS:")
-    df_rank = pd.DataFrame({'Alternatif': range(1, len(rank) + 1), 'Peringkat': rank})
+    df_rank = pd.DataFrame({'Alternatif': range(1, len(ranks) + 1), 'Peringkat': ranks, 'Total Score': total_scores})
     df_rank['Framework'] = frameworks  
-
+    
     df_rank_sorted = df_rank.sort_values(by='Peringkat').reset_index(drop=True)
     df_rank_sorted.index += 1  
     df_rank_sorted.rename_axis('Alternatif', inplace=True)  
