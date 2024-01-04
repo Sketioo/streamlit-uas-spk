@@ -109,8 +109,12 @@ def run():
         - Kinerja (C5), semakin baik kinerja dari framework semakin baik.
         """
     )
+    
+    st.markdown("---") 
 
     selected_framework = st.selectbox("Pilih Framework", framework_options)
+    
+    st.warning("Harap masukkan lebih dari 3 alternatif sebelum menjalankan proses.")
 
     st.write("## Input Nilai Kriteria")
 
