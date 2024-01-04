@@ -32,19 +32,50 @@ def normalize_values(values, labels):
             for j in range(values.shape[1]):
                 normalized_value.append(1.0)  # Atau sesuaikan dengan nilai default yang sesuai
         else:
-            # Modifikasi nilai minimum untuk menghindari nilai normalisasi menjadi 0
-            min_val = min_val - 0.01
-
             for j in range(values.shape[1]):
                 if labels[j] == 'benefit':
-                    norm_c = (values[i][j] - min_val) / (max_val - min_val)
+                    norm_c = values[i][j] / np.sqrt(np.sum(values[:, j] ** 2))
                 elif labels[j] == 'cost':
-                    norm_c = (min_val - values[i][j]) / (min_val - max_val)
+                    norm_c = min_val / values[i][j]  # Memastikan normalisasi 'cost' berbanding terbalik
                 normalized_value.append(norm_c)
 
         normalized_all.append(normalized_value)
 
     return np.array(normalized_all)
+
+
+
+
+# def normalize_values(values, labels):
+#     if not values.shape[1] == len(labels):
+#         st.write('Jumlah kriteria dan label tidak sama')
+#         return None
+
+#     normalized_all = []
+
+#     for i in range(values.shape[0]):
+#         normalized_value = []
+#         max_val = np.max(values[i])
+#         min_val = np.min(values[i])
+
+#         # Menangani kasus di mana nilai maksimum dan minimum sama
+#         if max_val == min_val:
+#             for j in range(values.shape[1]):
+#                 normalized_value.append(1.0)  # Atau sesuaikan dengan nilai default yang sesuai
+#         else:
+#             # Modifikasi nilai minimum untuk menghindari nilai normalisasi menjadi 0
+#             min_val = min_val - 0.01
+
+#             for j in range(values.shape[1]):
+#                 if labels[j] == 'benefit':
+#                     norm_c = (values[i][j] - min_val) / (max_val - min_val)
+#                 elif labels[j] == 'cost':
+#                     norm_c = (min_val - values[i][j]) / (min_val - max_val)
+#                 normalized_value.append(norm_c)
+
+#         normalized_all.append(normalized_value)
+
+#     return np.array(normalized_all)
 
 
 def calculate_topsis(values, weights):
