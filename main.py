@@ -82,14 +82,16 @@ def run():
     st.write("Dikembangkan oleh Martio Husein Samsu untuk keperluan tugas UAS")
 
     st.markdown(
-        """
+    """
+    <p style='text-align: justify;'>
         Metode TOPSIS (Technique for Order Preference by Similarity to Ideal Solution) 
         adalah metode pengambilan keputusan multi-kriteria yang menggunakan perbandingan 
         terhadap solusi ideal positif dan negatif untuk menentukan peringkat alternatif. 
         Metode ini mempertimbangkan kedekatan relatif setiap alternatif terhadap kedua solusi ideal 
         tersebut dan dapat digunakan untuk memilih alternatif terbaik dari beberapa kriteria.
-        """
-    )
+    </p>
+    """, unsafe_allow_html=True
+)
 
     st.markdown(
         """
