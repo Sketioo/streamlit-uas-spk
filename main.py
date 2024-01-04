@@ -1,6 +1,7 @@
 import streamlit as st
 import numpy as np
 import pandas as pd
+import matplotlib.pyplot as plt
 
 if 'clicked' not in st.session_state:
     st.session_state.clicked = False
@@ -173,6 +174,19 @@ def process_data():
     df_rank_sorted.index += 1  
     df_rank_sorted.rename_axis('Alternatif', inplace=True)  
     st.table(df_rank_sorted)
+    
+    st.write("### Peringkat Framework Berdasarkan Metode TOPSIS")
+    
+    # Tambahkan visualisasi diagram batang vertikal untuk setiap alternatif
+    plt.figure(figsize=(10, 6))
+    plt.barh(df_rank_sorted['Framework'], df_rank_sorted['Total Score'], color='skyblue')
+    plt.xlabel('Total Score')
+    plt.title('Peringkat Framework Berdasarkan Metode TOPSIS')
+    plt.gca().invert_yaxis()  # Membalik urutan framework agar peringkat teratas berada di atas
+    plt.tight_layout()
+
+    st.pyplot(plt) 
+
 
 if __name__ == "__main__":
     run()
