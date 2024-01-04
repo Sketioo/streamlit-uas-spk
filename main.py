@@ -5,9 +5,9 @@ import pandas as pd
 if 'clicked' not in st.session_state:
     st.session_state.clicked = False
 
-criteria_labels = np.array(['benefit', 'benefit', 'benefit', 'cost', 'benefit'])
+criteria_labels = np.array(['benefit', 'benefit', 'cost', 'benefit', 'benefit'])
 
-weights = np.array([0.3, 0.1, 0.3, 0.1, 0.2])
+weights = np.array([0.3, 0.1, 0.1, 0.2, 0.3])
 
 framework_options = ['Laravel', 'Django', 'Rubby on Rails', 'Spring Boots', 'Express', 'Flask', 'Koa.js']
 
@@ -158,8 +158,10 @@ def process_data():
     st.write("Normalisasi nilai alternatif:")
     norm_a = normalize_values(A, criteria_labels)
     df_norm_values = pd.DataFrame(norm_a, columns=['C1', 'C2', 'C3', 'C4', 'C5'])
+    df_norm_values['Framework'] = frameworks  # Adding 'Frameworks' column
     df_norm_values.index += 1 
     st.dataframe(df_norm_values)
+
 
     st.write("Perankingan TOPSIS:")
     df_rank = pd.DataFrame({'Alternatif': range(1, len(ranks) + 1), 'Peringkat': ranks, 'Total Score': total_scores})
