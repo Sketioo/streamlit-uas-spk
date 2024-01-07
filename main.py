@@ -31,7 +31,7 @@ def normalize_values(values, labels):
         # Menangani kasus di mana nilai maksimum dan minimum sama
         if max_val == min_val:
             for j in range(values.shape[1]):
-                normalized_value.append(1.0)  # Atau sesuaikan dengan nilai default yang sesuai
+                normalized_value.append(1.0)  # Ssuaikan dengan nilai default yang sesuai
         else:
             for j in range(values.shape[1]):
                 if labels[j] == 'benefit':
@@ -165,10 +165,9 @@ def process_data():
     st.write("Normalisasi nilai alternatif:")
     norm_a = normalize_values(A, criteria_labels)
     df_norm_values = pd.DataFrame(norm_a, columns=['C1', 'C2', 'C3', 'C4', 'C5'])
-    df_norm_values['Framework'] = frameworks  # Adding 'Frameworks' column
+    df_norm_values['Framework'] = frameworks  # Menambahkan kolom 'Frameworks'
     df_norm_values.index += 1 
     st.dataframe(df_norm_values)
-
 
     st.write("Perankingan TOPSIS:")
     df_rank = pd.DataFrame({'Alternatif': range(1, len(ranks) + 1), 'Peringkat': ranks, 'Total Score': total_scores})
@@ -181,15 +180,76 @@ def process_data():
     
     st.write("### Peringkat Framework Berdasarkan Metode TOPSIS")
     
-    # Tambahkan visualisasi diagram batang vertikal untuk setiap alternatif
+    # Diagram batang untuk total skor
     plt.figure(figsize=(10, 6))
+    plt.subplot(1, 2, 1)
     plt.barh(df_rank_sorted['Framework'], df_rank_sorted['Total Score'], color='skyblue')
-    plt.xlabel('Total Score')
+    plt.xlabel('Total Skor')
     plt.title('Peringkat Framework Berdasarkan Metode TOPSIS')
-    plt.gca().invert_yaxis()  # Membalik urutan framework agar peringkat teratas berada di atas
+    plt.gca().invert_yaxis()  # Memutar balik sumbu y untuk menampilkan peringkat tertinggi di atas
     plt.tight_layout()
 
-    st.pyplot(plt) 
+    # Menampilkan jarak dari solusi ideal positif dan negatif
+    norm_values = normalize_values(A, criteria_labels)
+    weighted_norm_values = norm_values * weights
+    positive_ideal_solution = np.max(weighted_norm_values, axis=0)
+    negative_ideal_solution = np.min(weighted_norm_values, axis=0)
+
+    distances_positive = np.sqrt(np.sum((weighted_norm_values - positive_ideal_solution) ** 2, axis=1))
+    distances_negative = np.sqrt(np.sum((weighted_norm_values - negative_ideal_solution) ** 2, axis=1))
+
+    plt.subplot(1, 2, 2)
+    plt.barh(frameworks, distances_positive, label='Solusi Ideal Positif', color='green')
+    plt.barh(frameworks, distances_negative, label='Solusi Ideal Negatif', color='red', alpha=0.5)
+    plt.xlabel('Jarak')
+    plt.title('Jarak dari Solusi Ideal Positif & Negatif')
+    plt.legend()
+    plt.gca().invert_yaxis()  # Memutar balik sumbu y untuk menampilkan jarak tertinggi di atas
+    plt.tight_layout()
+
+    st.pyplot(plt)
+
+
+# def process_data():
+#     A = st.session_state.nilai_kriteria
+#     frameworks = st.session_state.frameworks
+
+#     ranks, total_scores = calculate_topsis(A, weights)
+    
+#     st.write("Nilai alternatif:")
+#     df_values = pd.DataFrame(A, columns=['C1', 'C2', 'C3', 'C4', 'C5'])
+#     df_values['Framework'] = frameworks  
+#     df_values.index += 1  
+#     st.dataframe(df_values)
+
+#     st.write("Normalisasi nilai alternatif:")
+#     norm_a = normalize_values(A, criteria_labels)
+#     df_norm_values = pd.DataFrame(norm_a, columns=['C1', 'C2', 'C3', 'C4', 'C5'])
+#     df_norm_values['Framework'] = frameworks  # Adding 'Frameworks' column
+#     df_norm_values.index += 1 
+#     st.dataframe(df_norm_values)
+
+
+#     st.write("Perankingan TOPSIS:")
+#     df_rank = pd.DataFrame({'Alternatif': range(1, len(ranks) + 1), 'Peringkat': ranks, 'Total Score': total_scores})
+#     df_rank['Framework'] = frameworks  
+    
+#     df_rank_sorted = df_rank.sort_values(by='Peringkat').reset_index(drop=True)
+#     df_rank_sorted.index += 1  
+#     df_rank_sorted.rename_axis('Alternatif', inplace=True)  
+#     st.table(df_rank_sorted)
+    
+#     st.write("### Peringkat Framework Berdasarkan Metode TOPSIS")
+    
+#     # Tambahkan visualisasi diagram batang vertikal untuk setiap alternatif
+#     plt.figure(figsize=(10, 6))
+#     plt.barh(df_rank_sorted['Framework'], df_rank_sorted['Total Score'], color='skyblue')
+#     plt.xlabel('Total Score')
+#     plt.title('Peringkat Framework Berdasarkan Metode TOPSIS')
+#     plt.gca().invert_yaxis()  # Membalik urutan framework agar peringkat teratas berada di atas
+#     plt.tight_layout()
+
+#     st.pyplot(plt) 
 
 
 if __name__ == "__main__":
